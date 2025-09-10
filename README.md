@@ -11,3 +11,6 @@ Terdapat dua  tahap, yang pertama yaitu menjalankan perintah "python manage.py m
 
 5. Menurut Anda, dari semua framework yang ada, mengapa framework Django dijadikan permulaan pembelajaran pengembangan perangkat lunak?
 karena Django menyediakan banyak fitur bawaan yang memudahkan pembuatan aplikasi web secara cepat dan terstruktur. Dengan menggunakan pola arsitektur MVT (Model-View-Template), Django membantu pemula memahami pemisahan logika, tampilan, dan data. Implementasi seperti pada aplikasi yang saya buat yaitu lucylocket-shop, misalnya menunjukkan bahwa dengan Django bisa langsung membuat model Product, mengatur routing di urls.py, menampilkan data di template HTML tanpa harus menulis banyak kode dari nol.
+
+6. Apakah ada feedback untuk asisten dosen tutorial 1 yang telah kamu kerjakan sebelumnya?
+Asdos sangat membantu dalam pengerjaan tutorial 1 dan dalam menjawab pertanyaan. Terima kasih kakak asdos
