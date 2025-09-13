@@ -15,3 +15,5 @@ karena Django menyediakan banyak fitur bawaan yang memudahkan pembuatan aplikasi
 
 6. Apakah ada feedback untuk asisten dosen tutorial 1 yang telah kamu kerjakan sebelumnya?
 Asdos sangat membantu dalam pengerjaan tutorial 1 dan dalam menjawab pertanyaan. Terima kasih kakak asdos
+
+Tugas 2
