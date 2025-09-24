@@ -3,10 +3,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ app_name }}</title>
+    <title>Lucy Locket Shop</title>
 </head>
 <body>
-    <h1>Welcome to {{ app_name }}!</h1>
+    <h1>Welcome to Lucy Locket Shop!</h1>
     <p>Made by LoVe : {{ name }} - {{ class }}</p>
 
     <hr>
@@ -17,7 +17,17 @@
       <button>+ Add Product</button>
     </a>
 
+    <a href="{% url 'main:logout' %}">
+        <button>Logout</button>
+    </a>
+    <h5>Sesi terakhir login: {{ last_login }}</h5>
     <hr>
+    <a href="?filter=all">
+        <button type="button">All Articles</button>
+    </a>
+    <a href="?filter=my">
+        <button type="button">My Articles</button>
+    </a> 
 
     {% if not product_list %}
         <p>Belum ada data produk.</p>
