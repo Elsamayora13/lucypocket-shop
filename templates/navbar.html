@@ -47,11 +47,11 @@
     <div class="px-6 py-4">
       <!-- links -->
       <div class="space-y-4 text-gray-700">
-        <a href="/" class="block py-1">Home</a>
-        <a href="#" class="block py-1">Shoes</a>
-        <a href="#" class="block py-1">Training</a>
-        <a href="#" class="block py-1">Accessories</a>
-        <a href="#" class="block py-1">Stores</a>
+        <a href="#" data-filter="all"         class="block py-1 nav-link">Home</a>
+        <a href="#" data-filter="shoes"       class="block py-1 nav-link">Shoes</a>
+        <a href="#" data-filter="training"    class="block py-1 nav-link">Training</a>
+        <a href="#" data-filter="accessories" class="block py-1 nav-link">Accessories</a>
+        <a href="#" data-filter="other"       class="block py-1 nav-link">Other</a>
       </div>
 
       <!-- user -->
@@ -79,17 +79,28 @@
 <!-- Script toggle -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const links = document.querySelectorAll('[data-filter]');
-  const cards = document.querySelectorAll('.product-card');  // item grid langsung
-  if (!cards.length) return;  // kalau bukan halaman list, skip
-
-  function applyFilter(cat) {
-    cards.forEach(card => {
-      const catVal = (card.dataset.category || '').toLowerCase();
-      const show = (cat === 'all') || (catVal === cat);
-      card.classList.toggle('hidden', !show);  // sembunyikan kolom grid-nya (tanpa bolong)
+  // 1) HAMBURGER (mobile)
+  const btn  = document.getElementById('nav-btn');
+  const menu = document.getElementById('nav-menu');
+  if (btn && menu) {
+    btn.addEventListener('click', () => {
+      menu.classList.toggle('hidden');
+      btn.setAttribute('aria-expanded', menu.classList.contains('hidden') ? 'false' : 'true');
     });
+  }
 
+  // 2) FILTER PRODUK
+  const links = document.querySelectorAll('[data-filter]');
+  const cards = document.querySelectorAll('.product-card'); 
+  function applyFilter(cat) {
+    if (cards.length) {
+      cards.forEach(card => {
+        const catVal = (card.dataset.category || '').toLowerCase();
+        const show = (cat === 'all') || (catVal === cat);
+        card.classList.toggle('hidden', !show); 
+      });
+    }
+    // gaya aktif menu
     links.forEach(a => {
       const active = a.dataset.filter === cat;
       a.classList.toggle('text-gray-900', active);
@@ -99,14 +110,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   links.forEach(a => {
-    a.addEventListener('click', e => {
-      e.preventDefault();                // jangan pindah halaman
+    a.addEventListener('click', (e) => {
+      e.preventDefault();                
       applyFilter(a.dataset.filter);
-      const menu = document.getElementById('nav-menu');
-      if (menu && !menu.classList.contains('hidden')) menu.classList.add('hidden');
+      if (menu && !menu.classList.contains('hidden')) menu.classList.add('hidden'); // tutup menu mobile
     });
   });
 
-  applyFilter('all'); // default: tampilkan semua
+  applyFilter('all'); // default
 });
 </script>
