@@ -1,0 +1,112 @@
+<nav class="fixed top-0 left-0 w-full bg-white border-b border-gray-200 z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+    <!-- Brand -->
+    <a href="/" class="text-xl font-semibold">
+      <span class="text-green-600">Lucy Locket</span> Shop
+    </a>
+
+    <!-- Desktop links -->
+    <div class="hidden md:flex items-center gap-8 text-sm">
+      <a href="#" data-filter="all"         class="nav-link">Home</a>
+      <a href="#" data-filter="shoes"       class="nav-link">Shoes</a>
+      <a href="#" data-filter="accessories" class="nav-link">Accessories</a>
+      <a href="#" data-filter="training"    class="nav-link">Training</a>
+      <a href="#" data-filter="other"       class="nav-link">Other</a>
+    </div>
+
+    <!-- Desktop user -->
+    <div class="hidden md:flex items-center gap-6">
+      {% if user.is_authenticated %}
+        <div class="text-right leading-tight">
+          <div class="text-sm font-medium text-gray-900">{{ user.username }}</div>
+          <div class="text-[11px] text-gray-500">{{ class|default:"Lucy Locket Member" }}</div>
+        </div>
+        <!-- Logout pakai POST biar aman -->
+        <form method="post" action="{% url 'main:logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="text-red-600 hover:text-red-700 text-sm">Logout</button>
+        </form>
+      {% else %}
+        <a href="{% url 'main:login' %}" class="text-gray-600 hover:text-gray-900 text-sm">Login</a>
+        <a href="{% url 'main:register' %}" class="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1.5 rounded">Register</a>
+      {% endif %}
+    </div>
+
+    <!-- Hamburger (mobile) -->
+    <button id="nav-btn" class="md:hidden p-2 text-gray-600 hover:text-gray-900" aria-label="Open menu">
+      <div class="w-6 space-y-1.5">
+        <div class="h-0.5 bg-current"></div>
+        <div class="h-0.5 bg-current"></div>
+        <div class="h-0.5 bg-current"></div>
+      </div>
+    </button>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="nav-menu" class="md:hidden hidden border-t border-gray-200 bg-white">
+    <div class="px-6 py-4">
+      <!-- links -->
+      <div class="space-y-4 text-gray-700">
+        <a href="/" class="block py-1">Home</a>
+        <a href="#" class="block py-1">Shoes</a>
+        <a href="#" class="block py-1">Training</a>
+        <a href="#" class="block py-1">Accessories</a>
+        <a href="#" class="block py-1">Stores</a>
+      </div>
+
+      <!-- user -->
+      <div class="mt-6 pt-4 border-t border-gray-200">
+        {% if user.is_authenticated %}
+          <div class="mb-3">
+            <div class="font-medium text-gray-900">{{ user.username }}</div>
+            <div class="text-sm text-gray-500">Lucy Locket Member</div>
+          </div>
+          <form method="post" action="{% url 'main:logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="text-red-600 hover:text-red-700">Logout</button>
+          </form>
+        {% else %}
+          <a href="{% url 'main:login' %}" class="block py-2">Login</a>
+          <a href="{% url 'main:register' %}" class="block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-center">
+            Register
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Script toggle -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const links = document.querySelectorAll('[data-filter]');
+  const cards = document.querySelectorAll('.product-card');  // item grid langsung
+  if (!cards.length) return;  // kalau bukan halaman list, skip
+
+  function applyFilter(cat) {
+    cards.forEach(card => {
+      const catVal = (card.dataset.category || '').toLowerCase();
+      const show = (cat === 'all') || (catVal === cat);
+      card.classList.toggle('hidden', !show);  // sembunyikan kolom grid-nya (tanpa bolong)
+    });
+
+    links.forEach(a => {
+      const active = a.dataset.filter === cat;
+      a.classList.toggle('text-gray-900', active);
+      a.classList.toggle('text-gray-600', !active);
+      a.classList.toggle('font-medium', active);
+    });
+  }
+
+  links.forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();                // jangan pindah halaman
+      applyFilter(a.dataset.filter);
+      const menu = document.getElementById('nav-menu');
+      if (menu && !menu.classList.contains('hidden')) menu.classList.add('hidden');
+    });
+  });
+
+  applyFilter('all'); // default: tampilkan semua
+});
+</script>

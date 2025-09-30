@@ -1,65 +1,64 @@
-{% load humanize %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Lucy Locket Shop</title>
-</head>
-<body>
-    <h1>Welcome to Lucy Locket Shop!</h1>
-    <p>Made by LoVe : {{ name }} - {{ class }}</p>
+{% extends 'base.html' %}
+{% load static %}
 
-    <hr>
+{% block meta %}
+<title>Lucy Locket Shop</title>
+{% endblock meta %}
 
-    <h1>Product List</h1>
+{% block content %}
+{% include 'navbar.html' %}
+<div class="bg-gray-50 w-full pt-16 min-h-screen">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-    <a href="{% url 'main:create_product' %}">
-      <button>+ Add Product</button>
-    </a>
+    <!-- Header Section -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Latest Products</h1>
+      <p class="text-gray-600">Discover the newest items from Lucy Locket Shop</p>
+    </div>
 
-    <a href="{% url 'main:logout' %}">
-        <button>Logout</button>
-    </a>
-    <h5>Sesi terakhir login: {{ last_login }}</h5>
-    <hr>
-    <a href="?filter=all">
-        <button type="button">All Articles</button>
-    </a>
-    <a href="?filter=my">
-        <button type="button">My Articles</button>
-    </a> 
+    <!-- Filter Section -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 bg-white rounded-lg border border-gray-200 p-4">
+      <div class="flex space-x-3 mb-4 sm:mb-0">
+        <a href="?" class="{% if request.GET.filter == 'all' or not request.GET.filter  %} bg-green-600 text-white{% else %}bg-white text-gray-700 border border-gray-300{% endif %} px-4 py-2 rounded-md font-medium transition-colors hover:bg-green-600 hover:text-white">
+          All Products
+        </a>
+        <a href="?filter=my" class="{% if request.GET.filter == 'my' %} bg-green-600 text-white{% else %}bg-white text-gray-700 border border-gray-300{% endif %} px-4 py-2 rounded-md font-medium transition-colors hover:bg-green-600 hover:text-white">
+          My Products
+        </a>
+      </div>
+      {% if user.is_authenticated %}
+        <div class="text-sm text-gray-500">
+          Last login: {{ last_login }}
+        </div>
+      {% endif %}
+    </div>
 
+    <!-- Product Grid -->
     {% if not product_list %}
-        <p>Belum ada data produk.</p>
+      <div class="bg-white rounded-lg border border-gray-200 p-12 text-center">
+        <div class="w-32 h-32 mx-auto mb-4">
+          <img src="{% static 'image/no-product.png' %}" alt="No products available" class="w-full h-full object-contain">
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+        <p class="text-gray-500 mb-6">Be the first to add products to the shop.</p>
+        <a href="{% url 'main:create_product' %}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+          Create Product
+        </a>
+      </div>
     {% else %}
-        {% for product in product_list %}
-            <div>
-                <h2>
-                    <a href="{% url 'main:show_product' product.id %}">{{ product.name }}</a>
-                </h2>
+  <!-- products/list.html (atau show_main.html) -->
+  <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for product in product_list %}
+      <div
+        class="product-card"                          {# item grid langsung #}
+        data-category="{{ product.category|lower }}"  {# penanda kategori #}
+      >
+        {% include 'card_product.html' with product=product %}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
 
-                <p>
-                    <b>{{ product.get_category_display }}</b>
-                    {% if product.is_featured %} | <b>Featured</b>{% endif %}
-                    | <i>Stock: {{ product.stock }}</i>
-                    | Price: Rp {{ product.price|intcomma }}
-                </p>
-
-                {% if product.thumbnail %}
-                    <img src="{{ product.thumbnail }}" alt="thumbnail" width="150" height="100">
-                    <br />
-                {% endif %}
-
-                <p>{{ product.description|truncatewords:25 }}...</p>
-
-                <p>
-                    <a href="{% url 'main:show_product' product.id %}">
-                        <button>View Details</button>
-                    </a>
-                </p>
-            </div>
-            <hr>
-        {% endfor %}
-    {% endif %}
-</body>
-</html>
+  </div>
+</div>
+{% endblock content %}
