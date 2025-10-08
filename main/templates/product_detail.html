@@ -16,33 +16,52 @@
       </a>
     </div>
 
-    <!-- Product -->
-    <article class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+     <!-- Loading State -->
+        <div id="loading-state" class="bg-white rounded-lg border border-gray-200 p-12 text-center">
+            <svg class="animate-spin h-8 w-8 text-green-600 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            <p class="text-gray-600 mt-3">Loading product detail...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" class="bg-white rounded-lg border border-gray-200 p-12 text-center hidden">
+            <div class="w-16 h-16 mx-auto mb-4">
+                <div class="text-red-500 text-5xl">⚠️</div>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Failed to load product</h3>
+            <p class="text-gray-500">Please try again later.</p>
+        </div>
+
+    <!-- Article Content (Product) -->
+    <article id="article-content" class="bg-white rounded-lg border border-gray-200 overflow-hidden hidden">
       <!-- Header -->
       <div class="p-6 sm:p-8">
-        <div class="flex flex-wrap items-center gap-2 mb-4">
-          <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-green-600 text-white">
-            {{ product.get_category_display }}
-          </span>
-          {% if product.is_featured %}
-            <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
-              Featured
-            </span>
-          {% endif %}
+        <!-- Dynamic Badges -->
+        <div id="product-badges" class="flex flex-wrap items-center gap-2 mb-4">
+          <!-- badges (category/featured/out-of-stock) will be inserted here -->
         </div>
 
-        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-4">
-          {{ product.name }}
+        <!-- Title -->
+        <h1 id="product-title" class="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-4">
+          <!-- product name will be inserted here -->
         </h1>
 
+        <!-- Meta: date, stock, price -->
         <div class="flex flex-wrap items-center text-sm text-gray-500 gap-4">
-          <time datetime="{{ product.created_at|date:'c' }}">
-            {{ product.created_at|date:"M j, Y g:i A" }}
+          <time id="product-date" datetime="">
+            <!-- created_at will be inserted here -->
           </time>
-          {% if product.stock is not None %}<span>• Stock: {{ product.stock }}</span>{% endif %}
-          {% if product.price is not None %}<span>• Price: Rp {{ product.price|intcomma }}</span>{% endif %}
+          <span id="product-stock">
+            <!-- Stock will be inserted here -->
+          </span>
+          <span id="product-price">
+            <!-- Price will be inserted here -->
+          </span>
         </div>
       </div>
+    </article>
 
       <!-- Featured Image (URLField) -->
       <div class="px-6 sm:px-8">
@@ -90,4 +109,161 @@
     </article>
   </div>
 </div>
+
+<script>
+
+// Configuration
+const PRODUCT_ID = "{{ product.id }}";
+const PRODUCT_DETAIL_ENDPOINT =
+  `{% url 'main:show_json_by_id' '00000000-0000-0000-0000-000000000000' %}`
+    .replace('00000000-0000-0000-0000-000000000000', PRODUCT_ID);
+
+
+// DOM Elements
+const loadingState          = document.getElementById('loading-state');    
+const errorState            = document.getElementById('error-state');      
+const productContent        = document.getElementById('article-content');    
+
+const badgesContainer       = document.getElementById('product-badges');   
+const productTitle          = document.getElementById('product-title');     
+const productDate           = document.getElementById('product-date');       
+const productStock          = document.getElementById('product-stock');      
+const productPrice          = document.getElementById('product-price');     
+
+const featuredImageContainer= document.getElementById('featured-image-container'); 
+const featuredImage         = document.getElementById('featured-image');            
+const productDescription    = document.getElementById('product-description');      
+const productOwner          = document.getElementById('product-owner');             
+
+// Helpers
+function showState(state) {
+  // state: 'loading' | 'error' | 'ready'
+  if (loadingState) loadingState.classList.toggle('hidden', state !== 'loading');
+  if (errorState)   errorState.classList.toggle('hidden', state !== 'error');
+  if (productContent) productContent.classList.toggle('hidden', state !== 'ready');
+}
+
+function getCategoryLabel(code) {
+  const map = {
+    shoes: 'Shoes',
+    ball: 'Ball',
+    accessories: 'Accessories',
+    training: 'Training',
+    other: 'Other',
+  };
+  const key = String(code || '').toLowerCase();
+  return map[key] || code || 'Other';
+}
+
+function formatPriceIDR(value) {
+  try {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency', currency: 'IDR', maximumFractionDigits: 0
+    }).format(Number(value || 0));
+  } catch {
+    return `Rp ${value ?? 0}`;
+  }
+}
+
+function makeBadge(text, classes) {
+  const el = document.createElement('span');
+  el.className = `inline-flex items-center px-3 py-1 rounded-md text-xs font-medium ${classes}`;
+  el.textContent = text;
+  return el;
+}
+
+// =====================
+// Render Product
+// =====================
+function renderProduct(p) {
+  // Title
+  productTitle.textContent = p.name || 'Unnamed Product';
+  document.title = `${p.name || 'Product'} - Lucy Locket Shop`;
+
+  // Badges
+  badgesContainer.innerHTML = '';
+  badgesContainer.appendChild(makeBadge(getCategoryLabel(p.category), 'bg-purple-600 text-white'));
+  if (p.is_featured) {
+    badgesContainer.appendChild(makeBadge('Featured', 'bg-yellow-100 text-yellow-800'));
+  }
+  const stockNum = Number(p.stock ?? 0);
+  if (!Number.isNaN(stockNum) && stockNum <= 0) {
+    badgesContainer.appendChild(makeBadge('Out of Stock', 'bg-red-100 text-red-700'));
+  }
+
+  // Date
+  if (p.created_at) {
+    const dt = new Date(p.created_at);
+    productDate.setAttribute('datetime', dt.toISOString());
+    productDate.textContent = dt.toLocaleString('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  } else {
+    productDate.textContent = '';
+  }
+
+  // Stock
+  productStock.textContent = (p.stock !== null && p.stock !== undefined)
+    ? `• Stock: ${p.stock}`
+    : '';
+
+  // Price
+  productPrice.textContent = (p.price !== null && p.price !== undefined)
+    ? `• Price: ${formatPriceIDR(p.price)}`
+    : '';
+
+  // Featured image (opsional)
+  if (featuredImage && featuredImageContainer) {
+    if (p.thumbnail) {
+      featuredImage.src = p.thumbnail;
+      featuredImage.alt = p.name || 'Product image';
+      featuredImageContainer.classList.remove('hidden');
+    } else {
+      featuredImageContainer.classList.add('hidden');
+    }
+  }
+
+  // Description (opsional)
+  if (productDescription) {
+    productDescription.textContent = p.description || '';
+  }
+
+  // Owner/Author (opsional)
+  if (productOwner) {
+    const ownerName = p.user_username || p.user || '—';
+    productOwner.textContent = ownerName ? `Seller: ${ownerName}` : '';
+  }
+}
+
+
+// Fetch Product Detail
+async function loadProductDetail() {
+  try {
+    showState('loading');
+
+    const res = await fetch(PRODUCT_DETAIL_ENDPOINT, { headers: { 'Accept': 'application/json' }});
+    if (!res.ok) throw new Error('Failed to fetch product detail');
+
+  
+    const payload = await res.json();
+    const product = (payload && payload.data) ? payload.data : payload;
+
+    // Validasi minimal
+    if (!product || !product.name) throw new Error('Invalid product payload');
+
+    renderProduct(product);
+    showState('ready');
+  } catch (err) {
+    console.error('Error loading product detail:', err);
+    if (errorState) errorState.textContent = err.message || 'Terjadi kesalahan saat memuat produk.';
+    showState('error');
+  }
+}
+
+
+loadProductDetail();
+</script>
+
+
 {% endblock content %}

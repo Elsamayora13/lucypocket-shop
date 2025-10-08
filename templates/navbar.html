@@ -1,39 +1,61 @@
-<nav class="fixed top-0 left-0 w-full bg-white border-b border-gray-200 z-50">
+<nav class="fixed top-0 left-0 w-full z-50 border-b border-purple-700/30 bg-gradient-to-r from-purple-600 to-purple-700 backdrop-blur supports-[backdrop-filter]:bg-purple-700/90">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
     <!-- Brand -->
-    <a href="/" class="text-xl font-semibold">
-      <span class="text-green-600">Lucy Locket</span> Shop
+    <a href="/" class="text-white text-xl font-semibold tracking-tight hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 rounded-md px-1">
+      <span class="font-bold">Lucy Locket</span> <span class="font-normal opacity-90">Shop</span>
     </a>
 
     <!-- Desktop links -->
-    <div class="hidden md:flex items-center gap-8 text-sm">
-      <a href="#" data-filter="all"         class="nav-link">Home</a>
-      <a href="#" data-filter="shoes"       class="nav-link">Shoes</a>
-      <a href="#" data-filter="accessories" class="nav-link">Accessories</a>
-      <a href="#" data-filter="training"    class="nav-link">Training</a>
-      <a href="#" data-filter="other"       class="nav-link">Other</a>
+    <div class="hidden md:flex items-center gap-2">
+      <!-- tips: "active" style akan ditambah via JS -->
+      <a href="#" data-filter="all"
+         class="nav-link rounded-md px-3 py-1.5 text-white/80 hover:text-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 transition">
+        Home
+      </a>
+      <a href="#" data-filter="shoes"
+         class="nav-link rounded-md px-3 py-1.5 text-white/80 hover:text-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 transition">
+        Shoes
+      </a>
+      <a href="#" data-filter="accessories"
+         class="nav-link rounded-md px-3 py-1.5 text-white/80 hover:text-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 transition">
+        Accessories
+      </a>
+      <a href="#" data-filter="training"
+         class="nav-link rounded-md px-3 py-1.5 text-white/80 hover:text-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 transition">
+        Training
+      </a>
+      <a href="#" data-filter="other"
+         class="nav-link rounded-md px-3 py-1.5 text-white/80 hover:text-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 transition">
+        Other
+      </a>
     </div>
 
     <!-- Desktop user -->
-    <div class="hidden md:flex items-center gap-6">
+    <div class="hidden md:flex items-center gap-4">
       {% if user.is_authenticated %}
         <div class="text-right leading-tight">
-          <div class="text-sm font-medium text-gray-900">{{ user.username }}</div>
-          <div class="text-[11px] text-gray-500">{{ class|default:"Lucy Locket Member" }}</div>
+          <div class="text-white/95 text-sm font-medium">{{ user.username }}</div>
+          <div class="text-white/70 text-[11px]">{{ class|default:"Lucy Locket Member" }}</div>
         </div>
-        <!-- Logout pakai POST biar aman -->
         <form method="post" action="{% url 'main:logout' %}">
           {% csrf_token %}
-          <button type="submit" class="text-red-600 hover:text-red-700 text-sm">Logout</button>
+          <button type="submit"
+                  class="text-red/90 hover:text-white hover:bg-white/10 border border-white/20 px-3 py-1.5 rounded-md text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
+            Logout
+          </button>
         </form>
       {% else %}
-        <a href="{% url 'main:login' %}" class="text-gray-600 hover:text-gray-900 text-sm">Login</a>
-        <a href="{% url 'main:register' %}" class="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1.5 rounded">Register</a>
+        <a href="{% url 'main:login' %}" class="text-white/90 hover:text-white text-sm px-2 py-1.5 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
+          Login
+        </a>
+        <a href="{% url 'main:register' %}" class="bg-white text-purple-700 hover:bg-purple-50 text-sm px-3 py-1.5 rounded-md font-medium shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
+          Register
+        </a>
       {% endif %}
     </div>
 
     <!-- Hamburger (mobile) -->
-    <button id="nav-btn" class="md:hidden p-2 text-gray-600 hover:text-gray-900" aria-label="Open menu">
+    <button id="nav-btn" class="md:hidden p-2 text-white/90 hover:text-white rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70" aria-label="Open menu" aria-expanded="false">
       <div class="w-6 space-y-1.5">
         <div class="h-0.5 bg-current"></div>
         <div class="h-0.5 bg-current"></div>
@@ -43,31 +65,32 @@
   </div>
 
   <!-- Mobile menu -->
-  <div id="nav-menu" class="md:hidden hidden border-t border-gray-200 bg-white">
+  <div id="nav-menu" class="md:hidden hidden border-t border-purple-700/20 bg-white/95 backdrop-blur">
     <div class="px-6 py-4">
       <!-- links -->
-      <div class="space-y-4 text-gray-700">
-        <a href="#" data-filter="all"         class="block py-1 nav-link">Home</a>
-        <a href="#" data-filter="shoes"       class="block py-1 nav-link">Shoes</a>
-        <a href="#" data-filter="training"    class="block py-1 nav-link">Training</a>
-        <a href="#" data-filter="accessories" class="block py-1 nav-link">Accessories</a>
-        <a href="#" data-filter="other"       class="block py-1 nav-link">Other</a>
+      <div class="space-y-1">
+        <!-- "active" style mobile = bg-purple-50 text-purple-700 -->
+        <a href="#" data-filter="all"         class="block py-2 px-2 rounded-md nav-link text-slate-700 hover:bg-slate-100">Home</a>
+        <a href="#" data-filter="shoes"       class="block py-2 px-2 rounded-md nav-link text-slate-700 hover:bg-slate-100">Shoes</a>
+        <a href="#" data-filter="accessories" class="block py-2 px-2 rounded-md nav-link text-slate-700 hover:bg-slate-100">Accessories</a>
+        <a href="#" data-filter="training"    class="block py-2 px-2 rounded-md nav-link text-slate-700 hover:bg-slate-100">Training</a>
+        <a href="#" data-filter="other"       class="block py-2 px-2 rounded-md nav-link text-slate-700 hover:bg-slate-100">Other</a>
       </div>
 
       <!-- user -->
-      <div class="mt-6 pt-4 border-t border-gray-200">
+      <div class="mt-6 pt-4 border-t border-slate-200">
         {% if user.is_authenticated %}
           <div class="mb-3">
-            <div class="font-medium text-gray-900">{{ user.username }}</div>
-            <div class="text-sm text-gray-500">Lucy Locket Member</div>
+            <div class="font-medium text-slate-900">{{ user.username }}</div>
+            <div class="text-sm text-slate-500">Lucy Locket Member</div>
           </div>
           <form method="post" action="{% url 'main:logout' %}">
             {% csrf_token %}
             <button type="submit" class="text-red-600 hover:text-red-700">Logout</button>
           </form>
         {% else %}
-          <a href="{% url 'main:login' %}" class="block py-2">Login</a>
-          <a href="{% url 'main:register' %}" class="block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-center">
+          <a href="{% url 'main:login' %}" class="block py-2 text-slate-700 hover:text-slate-900">Login</a>
+          <a href="{% url 'main:register' %}" class="mt-2 block bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-center shadow-sm">
             Register
           </a>
         {% endif %}
@@ -76,7 +99,7 @@
   </div>
 </nav>
 
-<!-- Script toggle -->
+<!-- Script toggle & filter highlight -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   // 1) HAMBURGER (mobile)
@@ -89,34 +112,48 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 2) FILTER PRODUK
+  // 2) FILTER PRODUK (tampilkan/aktifkan style)
   const links = document.querySelectorAll('[data-filter]');
-  const cards = document.querySelectorAll('.product-card'); 
+  const cards = document.querySelectorAll('.product-card'); // dipakai bila grid server-side
+
+  function setActiveStyles(filter) {
+    links.forEach(a => {
+      const isActive = a.dataset.filter === filter;
+      const isDesktop = a.closest('.md\\:flex') !== null;
+      // reset
+      a.classList.remove('bg-white/20','text-white','font-semibold','bg-purple-50','text-purple-700');
+      if (isDesktop) {
+        // desktop: aktif = text putih + bg blur
+        if (isActive) a.classList.add('text-white','bg-white/20','font-semibold');
+      } else {
+        // mobile: aktif = pill ungu muda
+        if (isActive) a.classList.add('bg-purple-50','text-purple-700','font-semibold');
+      }
+    });
+  }
+
   function applyFilter(cat) {
+    // kalau kamu render grid via server (Django), blok ini akan nyaring elemen yang sudah ada
     if (cards.length) {
       cards.forEach(card => {
         const catVal = (card.dataset.category || '').toLowerCase();
         const show = (cat === 'all') || (catVal === cat);
-        card.classList.toggle('hidden', !show); 
+        card.classList.toggle('hidden', !show);
       });
     }
-    // gaya aktif menu
-    links.forEach(a => {
-      const active = a.dataset.filter === cat;
-      a.classList.toggle('text-gray-900', active);
-      a.classList.toggle('text-gray-600', !active);
-      a.classList.toggle('font-medium', active);
-    });
+    setActiveStyles(cat);
   }
 
   links.forEach(a => {
     a.addEventListener('click', (e) => {
-      e.preventDefault();                
-      applyFilter(a.dataset.filter);
+      e.preventDefault();
+      const cat = a.dataset.filter;
+      applyFilter(cat);
       if (menu && !menu.classList.contains('hidden')) menu.classList.add('hidden'); // tutup menu mobile
     });
   });
 
-  applyFilter('all'); 
+  // default
+  applyFilter('all');
 });
 </script>

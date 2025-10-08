@@ -44,7 +44,7 @@
           <a href="{% url 'main:show_main' %}" class="order-2 sm:order-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50 transition-colors text-center">
             Cancel
           </a>
-          <button type="submit" class="order-1 sm:order-2 flex-1 bg-green-600 text-white px-6 py-3 rounded-md font-medium hover:bg-green-700 transition-colors">
+          <button type="submit" class="order-1 sm:order-2 flex-1 bg-purple-600 text-white px-6 py-3 rounded-md font-medium hover:bg-purple-700 transition-colors">
             Publish Product
           </button>
         </div>
@@ -52,4 +52,10 @@
     </div>
   </div>
 </div>
+
+<button
+  onclick="showToast('Sample Title', 'This is a sample message for the toast notification.')"
+>
+  Click to Show Toast
+</button>
 {% endblock %}
