@@ -14,33 +14,98 @@ from django.shortcuts import render, redirect, get_object_or_404
 from main.forms import ProductForm
 from main.models import Product
 from django.http import HttpResponseRedirect, JsonResponse
+import traceback
+import requests
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.html import strip_tags
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.html import strip_tags
+import json
+from django.http import JsonResponse
 
-# Create your views here.
+
 @csrf_exempt
 @require_POST
 def add_product_entry_ajax(request):
-    name        = strip_tags.request.POST.get("name")
-    description = strip_tags.request.POST.get("description")
-    category    = request.POST.get("category")
-    price       = request.POST.get("price") or 0
-    stock       = request.POST.get("stock") or 0
-    thumbnail   = request.POST.get("thumbnail")
-    is_featured = request.POST.get("is_featured") == 'on'  # checkbox handling
-    user = request.user
-
-    new_product = Product(
-        name=name,
-        description=description,
-        category=category,
-        price=price,
-        stock=stock,
-        thumbnail=thumbnail,
-        is_featured=is_featured,
-        user=user,
-    )
-    new_product.save()
-
-    return HttpResponse(b"CREATED", status=201)
+    try:
+        
+        # Check if user is authenticated
+        if not request.user.is_authenticated:
+            print("❌ User not authenticated")
+            return HttpResponse(b"User not authenticated", status=401)
+        
+        # Get and validate required fields
+        name = request.POST.get("name", "").strip()
+        description = request.POST.get("description", "").strip()
+        price_str = request.POST.get("price", "")
+        stock_str = request.POST.get("stock", "0")
+        
+        print(f"Raw values - name: '{name}', desc: '{description}', price: '{price_str}'")
+        
+        if not name:
+            print("❌ Name is empty")
+            return HttpResponse(b"Product name is required", status=400)
+        
+        if not description:
+            print("❌ Description is empty")
+            return HttpResponse(b"Product description is required", status=400)
+        
+        if not price_str:
+            print("❌ Price is empty")
+            return HttpResponse(b"Product price is required", status=400)
+        
+        # Strip HTML tags
+        name = strip_tags(name)
+        description = strip_tags(description)
+        
+        # Parse integers safely
+        try:
+            price = int(price_str)
+            if price < 0:
+                return HttpResponse(b"Price must be positive", status=400)
+        except ValueError:
+            print(f"❌ Invalid price value: {price_str}")
+            return HttpResponse(b"Invalid price value", status=400)
+        
+        try:
+            stock = int(stock_str)
+            if stock < 0:
+                stock = 0
+        except ValueError:
+            print(f"⚠️ Invalid stock value: {stock_str}, using 0")
+            stock = 0
+        
+        # Get optional fields
+        category = request.POST.get("category", "other")
+        thumbnail = request.POST.get("thumbnail", "").strip()
+        color = request.POST.get("color", "").strip()
+        is_featured = request.POST.get("is_featured") == "on"
+        
+      
+        
+        # Create product
+        new_product = Product(
+            name=name,
+            description=description,
+            category=category,
+            price=price,
+            stock=stock,
+            thumbnail=thumbnail if thumbnail else None,
+            color=color if color else None,
+            is_featured=is_featured,
+            user=request.user,
+        )
+        new_product.save()
+        
+       
+    
+    except Exception as e:
+        error_trace = traceback.format_exc()
+        print(f"❌ Error in add_product_entry_ajax:")
+        print(error_trace)
+        return HttpResponse(f"Error: {str(e)}".encode(), status=500)
 
 
 @login_required(login_url='/login')
@@ -67,8 +132,7 @@ def create_product(request):
     form = ProductForm(request.POST or None)
 
     if form.is_valid() and request.method == "POST":
-        form.save()
-        product_entry = form.save(commit = False)
+        product_entry = form.save(commit=False)
         product_entry.user = request.user
         product_entry.save()
         return redirect('main:show_main')
@@ -113,6 +177,30 @@ def show_json(request):
     ]
 
     return JsonResponse(data, safe=False)
+
+@login_required(login_url='/login')
+def show_my_json(request):
+    products = Product.objects.filter(user=request.user)
+
+    data = [
+        {
+            "id": product.id,
+            "name": product.name,
+            "price": product.price,
+            "description": product.description,
+            "category": product.category,
+            "thumbnail": product.thumbnail,
+            "is_featured": product.is_featured,
+            "stock": product.stock,
+            "color": product.color,
+            "user_id": product.user.id,
+        }
+        for product in products
+    ]
+
+    return JsonResponse(data, safe=False)
+
+
 
 def show_xml_by_id(request, product_id):
     try:
@@ -196,3 +284,68 @@ def delete_product(request, id):
     product.delete()
     return HttpResponseRedirect(reverse('main:show_main'))
 
+def proxy_image(request):
+    image_url = request.GET.get('url')
+    if not image_url:
+        return HttpResponse('No URL provided', status=400)
+    
+    try:
+        # Fetch image from external source
+        response = requests.get(image_url, timeout=10)
+        response.raise_for_status()
+        
+        # Return the image with proper content type
+        return HttpResponse(
+            response.content,
+            content_type=response.headers.get('Content-Type', 'image/jpeg')
+        )
+    except requests.RequestException as e:
+        return HttpResponse(f'Error fetching image: {str(e)}', status=500)
+    
+@csrf_exempt
+def create_product_flutter(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            
+            # Ambil data sesuai dengan field Product
+            name = strip_tags(data.get("name", ""))
+            description = strip_tags(data.get("description", ""))
+            price = int(data.get("price", 0))
+            stock = int(data.get("stock", 0))
+            category = data.get("category", "other")
+            thumbnail = data.get("thumbnail", "")
+            color = data.get("color", "")
+            is_featured = data.get("is_featured", False)
+            user = request.user
+            
+            # Validasi data required
+            if not name or not description or price <= 0:
+                return JsonResponse({
+                    "status": "error",
+                    "message": "Name, description, and valid price are required"
+                }, status=400)
+            
+            # Create product
+            new_product = Product(
+                name=name,
+                description=description,
+                price=price,
+                stock=stock,
+                category=category,
+                thumbnail=thumbnail if thumbnail else None,
+                color=color if color else None,
+                is_featured=is_featured,
+                user=user
+            )
+            new_product.save()
+            
+            return JsonResponse({"status": "success"}, status=200)
+            
+        except (ValueError, KeyError) as e:
+            return JsonResponse({
+                "status": "error",
+                "message": str(e)
+            }, status=400)
+    else:
+        return JsonResponse({"status": "error"}, status=405)

@@ -74,10 +74,15 @@
     </div>
 
     <!-- Modal footer -->
-    <div class="flex flex-col sm:flex-row gap-4 p-6 border-t border-gray-200 rounded-b">
-      <button type="button" id="cancelButton" class="order-2 sm:order-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50 transition-colors text-center" onclick="hideModal()">Cancel</button>
-      <button type="submit" id="submitProduct" form="productForm" class="order-1 sm:order-2 flex-1 bg-purple-600 text-white px-6 py-3 rounded-md font-medium hover:bg-purple-700 transition-colors">Publish Product</button>
-    </div>
+    <<!-- Modal footer -->
+<div class="flex flex-col sm:flex-row gap-4 p-6 border-t border-gray-200 rounded-b">
+  <button type="button" id="cancelButton" class="order-2 sm:order-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50 transition-colors text-center" onclick="hideModal()">
+    Cancel
+  </button>
+  <button type="button" id="submitProduct" onclick="addProductEntry()" class="order-1 sm:order-2 flex-1 bg-purple-600 text-white px-6 py-3 rounded-md font-medium hover:bg-purple-700 transition-colors">
+    Publish Product
+  </button>
+</div>
   </div>
 </div>
 
@@ -106,26 +111,85 @@
       }, 150); 
   }
 
+  // ✅ GET CSRF TOKEN
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
   async function addProductEntry() {
-    await fetch("{% url 'main:add_product_entry_ajax' %}", {
-      method: "POST",
-      body: new FormData(document.querySelector('#productForm')),
-    })
-
-    document.getElementById("productForm").reset();
-    hideModal();
+    console.log('🚀 Adding product...');
+    
+    const submitBtn = document.getElementById('submitProduct');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Adding...';
+    
+    const formData = new FormData(document.querySelector('#productForm'));
+    const csrftoken = getCookie('csrftoken');
+    
+    try {
+      // ✅ TAMBAHKAN CSRF TOKEN DI HEADER
+      const response = await fetch("{% url 'main:add_product_entry_ajax' %}", {
+        method: "POST",
+        body: formData,
+        headers: {
+          'X-CSRFToken': csrftoken
+        }
+      });
       
-    // Show toast notification
-    showToast('Product added successfully!', '', 'success');
-
-    // Dispatch custom event to notify main.html about new data
-    document.dispatchEvent(new CustomEvent('productAdded'));
-
+      console.log('📥 Response:', response.status);
+      
+      if (response.ok) {
+        console.log('✅ Success!');
+        
+        document.getElementById("productForm").reset();
+        hideModal();
+        
+        // Show toast notification
+        if (typeof showToast === 'function') {
+          showToast('Success', 'Product added successfully!', 'success');
+        } else {
+          alert('✅ Product added successfully!');
+        }
+        
+        // Reload page to show new product
+        setTimeout(() => {
+          location.reload();
+        }, 500);
+        
+      } else {
+        const errorText = await response.text();
+        console.error('❌ Error:', errorText);
+        alert('❌ Failed to add product');
+      }
+      
+    } catch (error) {
+      console.error('❌ Network error:', error);
+      alert('❌ Error: ' + error.message);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Publish Product';
+    }
+    
     return false;
   }
 
-document.getElementById("productForm").addEventListener("submit", function(e) {
+  document.getElementById("productForm").addEventListener("submit", function(e) {
     e.preventDefault();
+    console.log('📝 Form submitted!');
     addProductEntry();
-})
+  });
+  
+  console.log('✅ Modal script loaded!');
+</script>
 </script>
